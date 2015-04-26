@@ -1,0 +1,68 @@
+lognormal
+========================================================
+author: Daniel Couture
+date: 4/26/2015
+
+Lognormal Distribution
+========================================================
+
+The lognormal distribution is based on the gaussian/standard normal distribution where
+
+$x = \mu + \sigma z$
+
+This create the well know bell curve that can be found in many symmetric data sets.  A lognormal data set for example can be created that has a log tail with.
+
+$x = e^{\mu + \sigma z}$
+
+
+Skewed Distributions
+========================================================
+
+On occasion, data are distributed in a skewed distribution such that it can not be approximated by a nearly normal distribuiton.
+
+```{r, echo=FALSE, fig.width=20}
+library("ggplot2")
+library("ggthemes")
+df <- data.frame(load_time=rlnorm(1000, meanlog=3, sdlog=0.75))
+
+ggplot(df, aes(x=seq_along(load_time), y=load_time)) +
+  geom_point(alpha=0.5) +
+  theme_economist() + scale_colour_economist() +
+  ggtitle("Page Load Time") +
+  ylab("Load Time") + xlab("x")
+```
+
+Normalized Skewed Distribution
+========================================================
+
+Blindly pushing the data through the standard normalization can correct for feature bias, but samples in the tail will still have larger influence on the outcome.
+
+```{r, echo=FALSE, fig.width=20}
+library("scales")
+df$load_time_z <- (df$load_time - mean(df$load_time)) / sd(df$load_time)
+ggplot(df, aes(x=load_time_z)) +
+  geom_histogram(aes(y=..density..), binwidth=0.25, colour="black", fill="blue", alpha=0.4) +
+  theme_economist() + scale_colour_economist() +
+  scale_x_continuous(breaks=pretty_breaks(n=21)) +
+  ggtitle("Standard Normalization of Page Load Times") +
+  ylab("Density") + xlab("(x - mean(x)) / sd(x)")
+```
+
+Log Normalized
+========================================================
+
+Using a log normalized approach, we can adjust for both the feature bias and reduce the larger influence the outliers have on our model.
+
+```{r}
+df$lognormal <- (log(df$load_time) - mean(log(df$load_time))) / sd(log(df$load_time))
+```
+
+```{r, echo=FALSE, fig.width=20}
+library("scales")
+ggplot(df, aes(x=lognormal)) +
+  geom_histogram(aes(y=..density..), binwidth=0.25, colour="black", fill="blue", alpha=0.4) +
+  theme_economist() + scale_colour_economist() +
+  scale_x_continuous(breaks=pretty_breaks(n=21)) +
+  ggtitle("Log Normalization of Page Load Times") +
+  ylab("Density") + xlab("(log(x) - mean(log(x))) / sd(log(x))")
+```
